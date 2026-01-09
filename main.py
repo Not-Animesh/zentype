@@ -295,17 +295,13 @@ class TypingScreen(ctk.CTkFrame):
         if self.engine is None:
             self.init_test()
         
-        # Reset the engine with current text
-        target_text = self.typing_display.text_widget.get("1.0", "end").strip()
-        self.engine = TypingEngine(target_text, self.selected_duration)
-        
         # Enable text widget for typing
         self.typing_display.text_widget.config(state="normal")
         
         # Set focus to the text widget
         self.typing_display.text_widget.focus_set()
         
-        # Start the test timer
+        # Start the test timer (engine already initialized in init_test)
         self.engine.start_timer()
         
         # Update status
