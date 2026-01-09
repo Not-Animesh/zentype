@@ -5,7 +5,11 @@ This mimics what happens when a user completes a typing test.
 """
 
 import time
+import logging
 from engine import TypingEngine
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s %(name)s] %(message)s')
 
 
 def simulate_typing_test():

@@ -5,7 +5,11 @@ This addresses the issue where metrics would return 0 after the test is marked a
 """
 
 import time
+import logging
 from engine import TypingEngine
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s %(name)s] %(message)s')
 
 
 def test_metrics_after_finish():
@@ -29,7 +33,7 @@ def test_metrics_after_finish():
     engine.handle_keypress(' ')  # Correct
     engine.handle_keypress('w')  # Correct
     engine.handle_keypress('o')  # Correct
-    engine.handle_keypress('x')  # Incorrect (should be 'r')
+    engine.handle_keypress('x')  # Incorrect (should be 'd')
     engine.handle_keypress('l')  # Correct
     
     # Check metrics before finishing
