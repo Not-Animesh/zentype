@@ -8,10 +8,13 @@ A pure Python typing speed tester inspired by Monkeytype with a dark minimalist 
 - **Character-Level Feedback**: Visual indication of correct/incorrect characters as you type
 - **Multiple Test Durations**: Choose between 30, 60, or 90-second tests
 - **Smart Backspace**: Backspace only works within the current word (no cross-word corrections)
+- **Auto-Start Timer**: Timer starts automatically on first keypress
 - **Performance Charting**: Speed-over-time visualization using canvas-based charting
 - **Complete History**: All test results saved locally with comprehensive statistics
-- **Local Data Storage**: 100% local persistence - no external database or cloud required
+- **SQLite Database**: Robust local data persistence with SQLite database
+- **Extended Word List**: 895+ common English words for varied typing practice
 - **Dark Minimalist UI**: Terminal-inspired aesthetic with focus on typing experience
+- **Instant Focus**: Text widget auto-focuses for immediate typing
 
 ## Installation
 
@@ -57,12 +60,29 @@ The application window will open and you're ready to start typing tests.
 
 ## Data Storage
 
-All typing test results are stored locally in:
+All typing test results are stored locally in a SQLite database:
 ```
-~/.zentype/data/typing_results.json
+~/.zentype/data/zentype.db
 ```
 
-This JSON file contains all test metrics and timestamps. No internet connection required.
+The database stores:
+- WPM (Words Per Minute)
+- Accuracy percentage
+- Test duration
+- Character statistics
+- Timestamps
+
+No internet connection required. All data stays on your machine.
+
+You can also use the legacy JSON storage via `data_manager.py` if preferred.
+
+## Configuration
+
+Create a `.env` file in the project root for configuration:
+```env
+DATABASE_URL=sqlite:///zentype.db
+DEBUG=True
+```
 
 ## File Structure
 
@@ -70,8 +90,10 @@ This JSON file contains all test metrics and timestamps. No internet connection 
 ZenType/
 ├── main.py              # Main application and UI components
 ├── engine.py            # Typing logic, WPM/accuracy calculations
-├── words.py             # Word list and text generation
-├── data_manager.py      # Local JSON data persistence
+├── words.py             # Word list and text generation (895 words)
+├── database.py          # SQLite database manager
+├── data_manager.py      # Legacy JSON data persistence
+├── .env                 # Configuration (not tracked in git)
 ├── requirements.txt     # Python dependencies
 ├── README.md           # This file
 ├── SYSTEM_ARCHITECTURE.md  # Technical documentation
