@@ -7,11 +7,16 @@ Uses customtkinter for modern UI and tkinter.Text for character-level typing con
 import customtkinter as ctk
 from tkinter import Canvas
 import tkinter as tk
+import logging
 from words import WordProvider
 from engine import TypingEngine
 from database import DatabaseManager
 from datetime import datetime
 import math
+
+# Configure logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class TypingDisplay(ctk.CTkFrame):
@@ -386,11 +391,19 @@ class TypingScreen(ctk.CTkFrame):
     def finish_test(self):
         """Complete test and show results."""
         if self.engine is not None:
+            logger.debug("TypingScreen.finish_test: Calling engine.finish_test()")
             self.engine.finish_test()
+            
+            logger.debug("TypingScreen.finish_test: Getting test results")
             results = self.engine.get_test_results()
+            
+            logger.debug(f"TypingScreen.finish_test: Results: {results}")
+            
             self.data_manager.add_result(results)
             # Re-enable start button
             self.start_button.configure(state="normal")
+            
+            logger.debug("TypingScreen.finish_test: Calling on_test_complete with results")
             self.on_test_complete(results)
 
 
@@ -475,8 +488,12 @@ class ResultsScreen(ctk.CTkFrame):
 
     def display_results(self, results: dict, engine):
         """Display test results and chart."""
+        logger.debug(f"ResultsScreen.display_results: Received results: {results}")
+        
         wpm = results["wpm"]
         accuracy = results["accuracy"]
+        
+        logger.debug(f"ResultsScreen.display_results: Displaying WPM={wpm}, accuracy={accuracy}")
 
         self.wpm_display.configure(text=f"{int(wpm)} WPM")
         self.accuracy_display.configure(text=f"{accuracy:.1f}%")
@@ -720,5 +737,11 @@ class ZenTypeApp(ctk.CTk):
 
 
 if __name__ == "__main__":
+    # Configure logging
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='[%(levelname)s %(name)s] %(message)s'
+    )
+    
     app = ZenTypeApp()
     app.mainloop()
