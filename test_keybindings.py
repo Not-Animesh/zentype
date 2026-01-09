@@ -4,7 +4,11 @@ Test script to verify key binding logic in ZenType.
 Tests the TypingEngine functionality which underlies the key bindings.
 """
 
+import logging
 from engine import TypingEngine
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s %(name)s] %(message)s')
 
 
 def test_basic_typing():
