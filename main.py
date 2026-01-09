@@ -292,6 +292,7 @@ class TypingScreen(ctk.CTkFrame):
 
     def start_test(self):
         """Start the typing test and allow user input."""
+        # Ensure engine is initialized (defensive check)
         if self.engine is None:
             self.init_test()
         
@@ -301,7 +302,7 @@ class TypingScreen(ctk.CTkFrame):
         # Set focus to the text widget
         self.typing_display.text_widget.focus_set()
         
-        # Start the test timer (engine already initialized in init_test)
+        # Start the test timer (safe to call multiple times - has guard)
         self.engine.start_timer()
         
         # Update status
