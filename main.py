@@ -303,7 +303,8 @@ class TypingScreen(ctk.CTkFrame):
         self.typing_display.text_widget.focus_set()
         
         # Start the test timer (safe to call multiple times - has guard)
-        self.engine.start_timer()
+        if self.engine is not None:
+            self.engine.start_timer()
         
         # Update status
         self.status_label.configure(text="Test started! Type away!")

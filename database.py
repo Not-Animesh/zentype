@@ -62,6 +62,8 @@ class DatabaseManager:
         Args:
             test_result: Dictionary containing test metrics (wpm, accuracy, duration, etc.)
         """
+        if self.connection is None:
+            raise RuntimeError("Database connection is not initialized")
         cursor = self.connection.cursor()
         
         # Add timestamp if not present
@@ -94,6 +96,8 @@ class DatabaseManager:
         Returns:
             Dictionary with personal best WPM, average WPM, average accuracy, etc.
         """
+        if self.connection is None:
+            raise RuntimeError("Database connection is not initialized")
         cursor = self.connection.cursor()
         
         cursor.execute("""
@@ -135,6 +139,8 @@ class DatabaseManager:
         Returns:
             List of recent results in reverse chronological order
         """
+        if self.connection is None:
+            raise RuntimeError("Database connection is not initialized")
         cursor = self.connection.cursor()
         
         cursor.execute("""
@@ -161,6 +167,8 @@ class DatabaseManager:
         Returns:
             List of results matching the duration
         """
+        if self.connection is None:
+            raise RuntimeError("Database connection is not initialized")
         cursor = self.connection.cursor()
         
         cursor.execute("""
@@ -179,6 +187,8 @@ class DatabaseManager:
 
     def clear_all_data(self) -> None:
         """Clear all stored test results (use with caution)."""
+        if self.connection is None:
+            raise RuntimeError("Database connection is not initialized")
         cursor = self.connection.cursor()
         cursor.execute("DELETE FROM typing_results")
         self.connection.commit()

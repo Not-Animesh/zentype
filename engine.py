@@ -123,7 +123,7 @@ class TypingEngine:
         Returns:
             Seconds elapsed since test started, or 0 if not started
         """
-        if not self.is_active:
+        if not self.is_active or self.start_time is None:
             return 0
         return time.time() - self.start_time
 
