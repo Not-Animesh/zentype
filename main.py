@@ -386,11 +386,19 @@ class TypingScreen(ctk.CTkFrame):
     def finish_test(self):
         """Complete test and show results."""
         if self.engine is not None:
+            print(f"[DEBUG TypingScreen.finish_test] Calling engine.finish_test()")
             self.engine.finish_test()
+            
+            print(f"[DEBUG TypingScreen.finish_test] Getting test results")
             results = self.engine.get_test_results()
+            
+            print(f"[DEBUG TypingScreen.finish_test] Results: {results}")
+            
             self.data_manager.add_result(results)
             # Re-enable start button
             self.start_button.configure(state="normal")
+            
+            print(f"[DEBUG TypingScreen.finish_test] Calling on_test_complete with results")
             self.on_test_complete(results)
 
 
@@ -475,8 +483,12 @@ class ResultsScreen(ctk.CTkFrame):
 
     def display_results(self, results: dict, engine):
         """Display test results and chart."""
+        print(f"[DEBUG ResultsScreen.display_results] Received results: {results}")
+        
         wpm = results["wpm"]
         accuracy = results["accuracy"]
+        
+        print(f"[DEBUG ResultsScreen.display_results] Displaying WPM={wpm}, accuracy={accuracy}")
 
         self.wpm_display.configure(text=f"{int(wpm)} WPM")
         self.accuracy_display.configure(text=f"{accuracy:.1f}%")

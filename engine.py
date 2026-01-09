@@ -115,6 +115,7 @@ class TypingEngine:
         if not self.is_active:
             self.is_active = True
             self.start_time = time.time()
+            print(f"[DEBUG start_timer] Timer started. start_time={self.start_time}")
 
     def get_elapsed_time(self) -> float:
         """
@@ -123,8 +124,12 @@ class TypingEngine:
         Returns:
             Seconds elapsed since test started, or 0 if not started
         """
-        if not self.is_active or self.start_time is None:
+        if self.start_time is None:
             return 0
+        
+        # If test is finished, use end_time; otherwise use current time
+        if self.end_time is not None:
+            return self.end_time - self.start_time
         return time.time() - self.start_time
 
     def is_time_exceeded(self) -> bool:
@@ -154,12 +159,21 @@ class TypingEngine:
         Returns:
             WPM as float, or 0 if test not started
         """
-        if not self.is_active or self.get_elapsed_time() == 0:
+        elapsed_time = self.get_elapsed_time()
+        
+        # Debug output
+        print(f"[DEBUG calculate_wpm] elapsed_time={elapsed_time:.2f}s, correct_chars={self.correct_chars}, is_active={self.is_active}")
+        
+        if elapsed_time == 0:
             return 0.0
 
-        elapsed_minutes = self.get_elapsed_time() / 60.0
+        elapsed_minutes = elapsed_time / 60.0
         words = self.correct_chars / 5.0  # Standard CPM to WPM conversion
-        return words / elapsed_minutes if elapsed_minutes > 0 else 0.0
+        wpm = words / elapsed_minutes if elapsed_minutes > 0 else 0.0
+        
+        print(f"[DEBUG calculate_wpm] calculated WPM={wpm:.2f}")
+        
+        return wpm
 
     def calculate_accuracy(self) -> float:
         """
@@ -169,10 +183,17 @@ class TypingEngine:
         Returns:
             Accuracy as percentage (0-100), or 0 if no keystrokes
         """
+        # Debug output
+        print(f"[DEBUG calculate_accuracy] correct_chars={self.correct_chars}, total_chars_typed={self.total_chars_typed}")
+        
         if self.total_chars_typed == 0:
             return 0.0
 
-        return (self.correct_chars / self.total_chars_typed) * 100.0
+        accuracy = (self.correct_chars / self.total_chars_typed) * 100.0
+        
+        print(f"[DEBUG calculate_accuracy] calculated accuracy={accuracy:.2f}%")
+        
+        return accuracy
 
     def get_character_status(self, index: int) -> str:
         """
@@ -196,8 +217,16 @@ class TypingEngine:
 
     def finish_test(self) -> None:
         """Mark test as finished and record end time."""
+        print(f"[DEBUG finish_test] Called. is_active={self.is_active}, start_time={self.start_time}")
+        
         self.is_active = False
         self.end_time = time.time()
+        
+        # Calculate final metrics immediately
+        final_wpm = self.calculate_wpm()
+        final_accuracy = self.calculate_accuracy()
+        
+        print(f"[DEBUG finish_test] Test finished. end_time={self.end_time}, final WPM={final_wpm:.2f}, final accuracy={final_accuracy:.2f}%")
 
     def get_test_results(self) -> dict:
         """
