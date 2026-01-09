@@ -114,11 +114,6 @@ def test_configuration():
     """Test configuration files."""
     print("\nTesting configuration...")
     
-    if not os.path.exists('.env'):
-        print("  ⚠ .env file not found (optional)")
-    else:
-        print("  ✓ .env file exists")
-    
     if not os.path.exists('.gitignore'):
         print("  ⚠ .gitignore not found")
         return False

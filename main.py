@@ -48,19 +48,16 @@ class TypingDisplay(ctk.CTkFrame):
         self.text_widget.tag_config("error", foreground="#CA4754")
         self.text_widget.tag_config("cursor", background="#E2B714")
 
-        # Make text widget read-only except for our handlers
-        self.text_widget.bind("<Key>", lambda e: "break")
-        self.text_widget.config(state="disabled")
-        
-        # Set focus to text widget for immediate typing
-        self.text_widget.focus_set()
+        # Keep text widget in normal state but prevent default input handling
+        # All input will be handled manually through our event bindings
+        self.text_widget.config(state="normal")
 
     def display_text(self, text: str):
         """Set initial text in display widget."""
         self.text_widget.config(state="normal")
         self.text_widget.delete("1.0", "end")
         self.text_widget.insert("1.0", text)
-        self.text_widget.config(state="disabled")
+        # Keep in normal state so key bindings work
         self.update_colors(text, "", 0)
 
     def update_colors(self, target_text: str, input_text: str, char_index: int):
@@ -73,8 +70,6 @@ class TypingDisplay(ctk.CTkFrame):
             input_text: User's input so far
             char_index: Current position in target text
         """
-        self.text_widget.config(state="normal")
-
         # Remove all existing tags
         for tag in ["unwritten", "correct", "error", "cursor"]:
             self.text_widget.tag_remove(tag, "1.0", "end")
@@ -95,8 +90,6 @@ class TypingDisplay(ctk.CTkFrame):
                     self.text_widget.tag_add("error", pos_start, pos_end)
             else:
                 self.text_widget.tag_add("unwritten", pos_start, pos_end)
-
-        self.text_widget.config(state="disabled")
 
 
 class StatisticsPanel(ctk.CTkFrame):
@@ -277,13 +270,25 @@ class TypingScreen(ctk.CTkFrame):
         self.stats_panel.update_stats(0, 0)
         self.status_label.configure(text="Press Start to begin typing...")
 
-        # Keep text widget disabled until start button is pressed
-        self.typing_display.text_widget.config(state="disabled")
-
-        # Bind keyboard events
-        self.master.bind("<Key>", self.on_key)
-        self.master.bind("<BackSpace>", self.on_backspace)
-        self.master.bind("<Tab>", lambda e: self.reset_test())
+        # Bind keyboard events to the text widget itself for better control
+        # Unbind any previous bindings (use try-except to handle first call)
+        for event in ["<Key>", "<BackSpace>", "<Tab>", "<Button-1>"]:
+            try:
+                self.typing_display.text_widget.unbind(event)
+            except:
+                pass  # Binding didn't exist, which is fine
+        
+        self.typing_display.text_widget.bind("<Key>", self.on_key)
+        self.typing_display.text_widget.bind("<BackSpace>", self.on_backspace)
+        self.typing_display.text_widget.bind("<Tab>", self.on_tab)
+        
+        # Prevent mouse clicks from moving cursor or selecting text
+        self.typing_display.text_widget.bind("<Button-1>", lambda e: "break")
+        self.typing_display.text_widget.bind("<B1-Motion>", lambda e: "break")
+        self.typing_display.text_widget.bind("<Double-Button-1>", lambda e: "break")
+        self.typing_display.text_widget.bind("<Triple-Button-1>", lambda e: "break")
+        
+        # Bind focus events to the main window
         self.master.bind("<FocusIn>", self.on_focus_in)
         self.master.bind("<FocusOut>", self.on_focus_out)
 
@@ -295,9 +300,6 @@ class TypingScreen(ctk.CTkFrame):
         # Ensure engine is initialized (defensive check)
         if self.engine is None:
             self.init_test()
-        
-        # Enable text widget for typing
-        self.typing_display.text_widget.config(state="normal")
         
         # Set focus to the text widget
         self.typing_display.text_widget.focus_set()
@@ -353,6 +355,11 @@ class TypingScreen(ctk.CTkFrame):
             self.engine.handle_backspace()
             self.update_display()
         return "break"
+    
+    def on_tab(self, event):
+        """Handle Tab key to reset the test."""
+        self.reset_test()
+        return "break"
 
     def update_display(self):
         """Update text colors and statistics."""
@@ -383,8 +390,6 @@ class TypingScreen(ctk.CTkFrame):
             self.data_manager.add_result(results)
             # Re-enable start button
             self.start_button.configure(state="normal")
-            # Disable text widget after test completes
-            self.typing_display.text_widget.config(state="disabled")
             self.on_test_complete(results)
 
 
