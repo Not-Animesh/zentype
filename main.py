@@ -271,11 +271,12 @@ class TypingScreen(ctk.CTkFrame):
         self.status_label.configure(text="Press Start to begin typing...")
 
         # Bind keyboard events to the text widget itself for better control
-        # Unbind any previous bindings first
-        self.typing_display.text_widget.unbind("<Key>")
-        self.typing_display.text_widget.unbind("<BackSpace>")
-        self.typing_display.text_widget.unbind("<Tab>")
-        self.typing_display.text_widget.unbind("<Button-1>")
+        # Unbind any previous bindings (use try-except to handle first call)
+        for event in ["<Key>", "<BackSpace>", "<Tab>", "<Button-1>"]:
+            try:
+                self.typing_display.text_widget.unbind(event)
+            except:
+                pass  # Binding didn't exist, which is fine
         
         self.typing_display.text_widget.bind("<Key>", self.on_key)
         self.typing_display.text_widget.bind("<BackSpace>", self.on_backspace)
