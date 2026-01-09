@@ -206,6 +206,16 @@ class TypingScreen(ctk.CTkFrame):
         control_frame = ctk.CTkFrame(self, fg_color="#2C2E31")
         control_frame.pack(pady=20)
 
+        # Start Button
+        self.start_button = ctk.CTkButton(
+            control_frame,
+            text="Start",
+            font=("JetBrains Mono", 12),
+            fg_color="#3C3E42",
+            command=self.start_test,
+        )
+        self.start_button.pack(side="left", padx=5)
+
         ctk.CTkButton(
             control_frame,
             text="Reset (Tab)",
@@ -265,10 +275,12 @@ class TypingScreen(ctk.CTkFrame):
         self.engine = TypingEngine(target_text, self.selected_duration)
         self.typing_display.display_text(target_text)
         self.stats_panel.update_stats(0, 0)
-        self.status_label.configure(text="Ready to type...")
+        self.status_label.configure(text="Press Start to begin typing...")
+
+        # Keep text widget disabled until start button is pressed
+        self.typing_display.text_widget.config(state="disabled")
 
         # Bind keyboard events
-        self.typing_display.text_widget.focus_set()
         self.master.bind("<Key>", self.on_key)
         self.master.bind("<BackSpace>", self.on_backspace)
         self.master.bind("<Tab>", lambda e: self.reset_test())
@@ -278,9 +290,35 @@ class TypingScreen(ctk.CTkFrame):
         # Start the update loop
         self.update_stats_loop()
 
+    def start_test(self):
+        """Start the typing test and allow user input."""
+        if self.engine is None:
+            self.init_test()
+        
+        # Reset the engine with current text
+        target_text = self.typing_display.text_widget.get("1.0", "end").strip()
+        self.engine = TypingEngine(target_text, self.selected_duration)
+        
+        # Enable text widget for typing
+        self.typing_display.text_widget.config(state="normal")
+        
+        # Set focus to the text widget
+        self.typing_display.text_widget.focus_set()
+        
+        # Start the test timer
+        self.engine.start_timer()
+        
+        # Update status
+        self.status_label.configure(text="Test started! Type away!")
+        
+        # Disable start button during test
+        self.start_button.configure(state="disabled")
+
     def reset_test(self):
         """Reset the typing test to its initial state."""
         self.init_test()  # Properly reset the typing test
+        # Re-enable start button
+        self.start_button.configure(state="normal")
 
     def on_focus_in(self, event):
         """Handle when the window regains focus."""
@@ -297,14 +335,18 @@ class TypingScreen(ctk.CTkFrame):
         if self.engine is None:
             return "break"
 
+        # Prevent typing before test starts
+        if not self.engine.is_active:
+            return "break"
+
         if self.engine.is_completed():
             self.finish_test()
             return "break"
 
         char = event.char
         if char and ord(char) >= 32:  # Printable characters only
-            # Start timer on first keypress
-            if not self.engine.is_active:
+            # Update status on first character after start
+            if self.engine.char_index == 0:
                 self.status_label.configure(text="Typing in progress...")
             is_correct, idx = self.engine.handle_keypress(char)
             self.update_display()
@@ -345,6 +387,10 @@ class TypingScreen(ctk.CTkFrame):
             self.engine.finish_test()
             results = self.engine.get_test_results()
             self.data_manager.add_result(results)
+            # Re-enable start button
+            self.start_button.configure(state="normal")
+            # Disable text widget after test completes
+            self.typing_display.text_widget.config(state="disabled")
             self.on_test_complete(results)
 
 
