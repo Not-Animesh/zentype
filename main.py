@@ -300,6 +300,9 @@ class TypingScreen(ctk.CTkFrame):
 
         char = event.char
         if char and ord(char) >= 32:  # Printable characters only
+            # Start timer on first keypress
+            if not self.engine.is_active:
+                self.status_label.configure(text="Typing in progress...")
             is_correct, idx = self.engine.handle_keypress(char)
             self.update_display()
 
@@ -491,6 +494,19 @@ class HistoryScreen(ctk.CTkFrame):
         self.on_back_to_typing = on_back_to_typing
         self.data_manager = DataManager()
 
+        # Back button at top-left
+        back_button_frame = ctk.CTkFrame(self, fg_color="#2C2E31")
+        back_button_frame.pack(anchor="nw", padx=20, pady=10)
+        
+        ctk.CTkButton(
+            back_button_frame,
+            text="← Back",
+            font=("JetBrains Mono", 12),
+            fg_color="#3C3E42",
+            command=self.on_back_to_typing,
+            width=100,
+        ).pack()
+
         # Title
         title = ctk.CTkLabel(
             self,
@@ -498,71 +514,84 @@ class HistoryScreen(ctk.CTkFrame):
             font=("JetBrains Mono", 28, "bold"),
             text_color="#E2B714",
         )
-        title.pack(pady=20)
+        title.pack(pady=(0, 20))
 
         # Overall statistics
         stats = self.data_manager.get_statistics()
-        stats_frame = ctk.CTkFrame(self, fg_color="#2C2E31")
-        stats_frame.pack(pady=20)
-
-        ctk.CTkLabel(
-            stats_frame,
-            text=f"Total Tests: {stats['total_tests']}",
-            font=("JetBrains Mono", 12),
-            text_color="#D1D0C5",
-        ).pack(anchor="w", padx=20, pady=5)
-
-        ctk.CTkLabel(
-            stats_frame,
-            text=f"Best WPM: {int(stats['best_wpm'])}",
-            font=("JetBrains Mono", 12),
-            text_color="#D1D0C5",
-        ).pack(anchor="w", padx=20, pady=5)
-
-        ctk.CTkLabel(
-            stats_frame,
-            text=f"Average WPM: {stats['average_wpm']:.1f}",
-            font=("JetBrains Mono", 12),
-            text_color="#D1D0C5",
-        ).pack(anchor="w", padx=20, pady=5)
-
-        ctk.CTkLabel(
-            stats_frame,
-            text=f"Average Accuracy: {stats['average_accuracy']:.1f}%",
-            font=("JetBrains Mono", 12),
-            text_color="#D1D0C5",
-        ).pack(anchor="w", padx=20, pady=5)
-
-        # Recent results
-        ctk.CTkLabel(
-            self,
-            text="Recent Tests",
-            font=("JetBrains Mono", 14, "bold"),
-            text_color="#E2B714",
-        ).pack(pady=(20, 10))
-
-        # Results list frame with scrolling
-        list_frame = ctk.CTkScrollableFrame(self, fg_color="#3C3E42", height=250)
-        list_frame.pack(pady=10, padx=20, fill="both", expand=True)
-
-        recent = self.data_manager.get_recent_results(10)
-        for result in recent:
-            result_text = f"{result.get('wpm', 0):.0f} WPM | {result.get('accuracy', 0):.1f}% | {result.get('duration', 0)}s | {result.get('timestamp', 'N/A').split('T')[0]}"
+        
+        # Check if there's any history
+        if stats['total_tests'] == 0:
+            # Show "No history" message
+            no_history_frame = ctk.CTkFrame(self, fg_color="#2C2E31")
+            no_history_frame.pack(pady=50, expand=True)
+            
             ctk.CTkLabel(
-                list_frame,
-                text=result_text,
-                font=("JetBrains Mono", 11),
-                text_color="#D1D0C5",
-            ).pack(anchor="w", padx=10, pady=5)
+                no_history_frame,
+                text="No History Yet",
+                font=("JetBrains Mono", 24, "bold"),
+                text_color="#646669",
+            ).pack(pady=20)
+            
+            ctk.CTkLabel(
+                no_history_frame,
+                text="Complete a typing test to see your results here",
+                font=("JetBrains Mono", 12),
+                text_color="#646669",
+            ).pack(pady=10)
+        else:
+            # Show statistics and history
+            stats_frame = ctk.CTkFrame(self, fg_color="#2C2E31")
+            stats_frame.pack(pady=20)
 
-        # Back button
-        ctk.CTkButton(
-            self,
-            text="Back to Typing",
-            font=("JetBrains Mono", 12),
-            fg_color="#3C3E42",
-            command=self.on_back_to_typing,
-        ).pack(pady=20)
+            ctk.CTkLabel(
+                stats_frame,
+                text=f"Total Tests: {stats['total_tests']}",
+                font=("JetBrains Mono", 12),
+                text_color="#D1D0C5",
+            ).pack(anchor="w", padx=20, pady=5)
+
+            ctk.CTkLabel(
+                stats_frame,
+                text=f"Best WPM: {int(stats['best_wpm'])}",
+                font=("JetBrains Mono", 12),
+                text_color="#D1D0C5",
+            ).pack(anchor="w", padx=20, pady=5)
+
+            ctk.CTkLabel(
+                stats_frame,
+                text=f"Average WPM: {stats['average_wpm']:.1f}",
+                font=("JetBrains Mono", 12),
+                text_color="#D1D0C5",
+            ).pack(anchor="w", padx=20, pady=5)
+
+            ctk.CTkLabel(
+                stats_frame,
+                text=f"Average Accuracy: {stats['average_accuracy']:.1f}%",
+                font=("JetBrains Mono", 12),
+                text_color="#D1D0C5",
+            ).pack(anchor="w", padx=20, pady=5)
+
+            # Recent results
+            ctk.CTkLabel(
+                self,
+                text="Recent Tests",
+                font=("JetBrains Mono", 14, "bold"),
+                text_color="#E2B714",
+            ).pack(pady=(20, 10))
+
+            # Results list frame with scrolling
+            list_frame = ctk.CTkScrollableFrame(self, fg_color="#3C3E42", height=250)
+            list_frame.pack(pady=10, padx=20, fill="both", expand=True)
+
+            recent = self.data_manager.get_recent_results(10)
+            for result in recent:
+                result_text = f"{result.get('wpm', 0):.0f} WPM | {result.get('accuracy', 0):.1f}% | {result.get('duration', 0)}s | {result.get('timestamp', 'N/A').split('T')[0]}"
+                ctk.CTkLabel(
+                    list_frame,
+                    text=result_text,
+                    font=("JetBrains Mono", 11),
+                    text_color="#D1D0C5",
+                ).pack(anchor="w", padx=10, pady=5)
 
 
 class ZenTypeApp(ctk.CTk):
@@ -611,9 +640,10 @@ class ZenTypeApp(ctk.CTk):
 
     def show_typing(self):
         """Show typing screen."""
-        self.typing_screen.pack(fill="both", expand=True)
         self.results_screen.pack_forget()
         self.history_screen.pack_forget()
+        self.typing_screen.pack(fill="both", expand=True)
+        self.typing_screen.typing_display.text_widget.focus()
 
     def show_results(self, results: dict):
         """Show results screen."""
@@ -626,8 +656,8 @@ class ZenTypeApp(ctk.CTk):
         """Show history screen."""
         self.typing_screen.pack_forget()
         self.results_screen.pack_forget()
-        self.history_screen.pack(fill="both", expand=True)
-        # Refresh history data
+        # Destroy old history screen and create fresh one
+        self.history_screen.destroy()
         self.history_screen = HistoryScreen(
             self.main_frame,
             on_back_to_typing=self.show_typing,
