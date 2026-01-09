@@ -9,7 +9,7 @@ from tkinter import Canvas
 import tkinter as tk
 from words import WordProvider
 from engine import TypingEngine
-from data_manager import DataManager
+from database import DatabaseManager
 from datetime import datetime
 import math
 
@@ -51,6 +51,9 @@ class TypingDisplay(ctk.CTkFrame):
         # Make text widget read-only except for our handlers
         self.text_widget.bind("<Key>", lambda e: "break")
         self.text_widget.config(state="disabled")
+        
+        # Set focus to text widget for immediate typing
+        self.text_widget.focus_set()
 
     def display_text(self, text: str):
         """Set initial text in display widget."""
@@ -155,7 +158,7 @@ class TypingScreen(ctk.CTkFrame):
         self.engine: TypingEngine | None = None
         self.selected_duration = 30
         self.text_provider = WordProvider()
-        self.data_manager = DataManager()
+        self.data_manager = DatabaseManager()
 
         # Header with title
         header = ctk.CTkLabel(
@@ -265,7 +268,7 @@ class TypingScreen(ctk.CTkFrame):
         self.status_label.configure(text="Ready to type...")
 
         # Bind keyboard events
-        self.typing_display.text_widget.focus()
+        self.typing_display.text_widget.focus_set()
         self.master.bind("<Key>", self.on_key)
         self.master.bind("<BackSpace>", self.on_backspace)
         self.master.bind("<Tab>", lambda e: self.reset_test())
@@ -492,7 +495,7 @@ class HistoryScreen(ctk.CTkFrame):
         self.configure(fg_color="#2C2E31")
 
         self.on_back_to_typing = on_back_to_typing
-        self.data_manager = DataManager()
+        self.data_manager = DatabaseManager()
 
         # Back button at top-left
         back_button_frame = ctk.CTkFrame(self, fg_color="#2C2E31")
@@ -643,7 +646,7 @@ class ZenTypeApp(ctk.CTk):
         self.results_screen.pack_forget()
         self.history_screen.pack_forget()
         self.typing_screen.pack(fill="both", expand=True)
-        self.typing_screen.typing_display.text_widget.focus()
+        self.typing_screen.typing_display.text_widget.focus_set()
 
     def show_results(self, results: dict):
         """Show results screen."""
