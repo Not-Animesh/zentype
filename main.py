@@ -341,9 +341,6 @@ class TypingScreen(ctk.CTkFrame):
 
         char = event.char
         if char and ord(char) >= 32:  # Printable characters only
-            # Update status on first character after start
-            if self.engine.char_index == 0:
-                self.status_label.configure(text="Typing in progress...")
             is_correct, idx = self.engine.handle_keypress(char)
             self.update_display()
 
